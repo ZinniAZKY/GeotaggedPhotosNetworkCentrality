@@ -1,8 +1,40 @@
 # libraries 导入模块
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+import requests
+import json
+import xlwt
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 import xlrd
+
+#主要的url
+api='https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=de907d3ed1327140f7f8668d79ad4778&min_taken_date=2018-01-01&max_taken_date=2018-12-31&min_upload_date=2018-01-01&max_upload_date=2018-12-31&privacy_filter=1&accuracy=16&bbox=135.5591,34.875,135.8787,35.3212&media=photos&has_geo=1&geo_context=2&content_type=1&page=10&extras=date_taken,owner_name,tags,title,description,geo,date_upload&per_page=200&format=json&sort= date-taken-asc'
+r= requests.get(api)
+a = json.loads(r.text[14:-1])
+
+KeyWords = ['id', 'owner', 'secret', 'server', 'farm', 'datetaken', 'latitude', 'longitude', 'accuracy', 'place_id', 'woeid', 'dateupload']
+
+f = xlwt.Workbook()
+sheet1 = f.add_sheet(u'sheet1', cell_overwrite_ok=True)
+for i in range(len(KeyWords)):
+    sheet1.write(0, i, KeyWords[i])
+
+row = 1
+for m in range(a["photos"]["pages"]):
+    s=requests.get(api+"&page="+str(m))
+    b=json.loads(s.text[14:-1])
+    c = b["photos"]["photo"]
+    for i in range(len(b["photos"]["photo"])):
+        print(m, i)
+        for j in range(len(KeyWords)):
+            if KeyWords[j] in c[i].keys():
+                sheet1.write(row, j, c[i][KeyWords[j]])
+            else:
+                sheet1.write(row, j, ' ')
+        row = row + 1
+    f.save(r'2018_original_1.xls' )
 
 inputFile = "C:\\Users\\64864\\Downloads\\修士卒論\\M2四月発表\\Flickr_correct\\2010-2018.xls"
 data = pd.read_excel(inputFile, sheet_name="格网节点", encoding="utf-8")
